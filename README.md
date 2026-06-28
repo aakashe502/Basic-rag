@@ -1,17 +1,2 @@
 # basic_rag
-
-This folder reuses the `githubcodeforces/.venv` virtual environment.
-
-To activate the shared virtual environment on macOS / Linux:
-
-```bash
-source ../githubcodeforces/.venv/bin/activate
-```
-
-On Windows PowerShell:
-
-```powershell
-..\githubcodeforces\.venv\Scripts\Activate.ps1
-```
-
-Once activated, run Python scripts from this folder with the same environment as `githubcodeforces`.
+Its a basic Rag application , the document has txt file which acts as the soure of truth to the LLM and it uses that txt file to provide answer to our problem
