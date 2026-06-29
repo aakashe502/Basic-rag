@@ -40,3 +40,6 @@ python rag.py
 ```
 
 You can then enter your question and the app will answer based on the document context.
+
+
+Introduced a faiss layer which basically gives the embeddings closer to questions embedding in a very less time reducing latency. So now instead of comparing the cosine similairy we just ask the faiss to give the top k closest vectors and we pass those vectors to the LLM.

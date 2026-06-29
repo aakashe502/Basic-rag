@@ -1,7 +1,8 @@
 from loader import load_document
 from chunker import chunk_text
 from embedding import get_embedding
-from retriever import retrieve,embeddingretrieve
+from vector_store import VectorStore
+
 from llm import ask_llm
 
 
@@ -9,35 +10,35 @@ class BasicRAG:
 
     def __init__(self, document_path):
 
-        print("Loading document...")
-
         self.document = load_document(document_path)
-
-        print("Chunking document...")
 
         self.chunks = chunk_text(self.document)
 
-        print(f"Created {len(self.chunks)} chunks")
-
-        print("Generating embeddings...")
-
-        self.embeddings = [
+        embeddings = [
             get_embedding(chunk)
             for chunk in self.chunks
         ]
 
-        print("Ready!\n")
+        embedding_dimension = len(embeddings[0])
+
+        self.vector_store = VectorStore(
+            embedding_dimension
+        )
+
+        self.vector_store.add(
+            self.chunks,
+            embeddings
+        )
 
     def ask(self, question):
 
-        retrieved_chunks = embeddingretrieve(
-            question,
-            self.chunks,
-            self.embeddings
+        question_embedding = get_embedding(question)
+
+        retrieved_chunks = self.vector_store.search(
+            question_embedding,
+            top_k=3
         )
 
-        context = "\n\n".join(retrieved_chunks)
+        context = "\n".join(retrieved_chunks)
 
-        answer = ask_llm(context, question)
-
-        return answer
+        return ask_llm(context, question)
