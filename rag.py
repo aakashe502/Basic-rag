@@ -1,18 +1,43 @@
 from loader import load_document
 from chunker import chunk_text
-from retriever import retrieve
+from embedding import get_embedding
+from retriever import retrieve,embeddingretrieve
 from llm import ask_llm
 
-text = load_document("documents/company.txt")
 
-chunks = chunk_text(text)
+class BasicRAG:
 
-question = input("Ask: ")
+    def __init__(self, document_path):
 
-results = retrieve(question, chunks)
+        print("Loading document...")
 
-context = "\n".join(results)
+        self.document = load_document(document_path)
 
-answer = ask_llm(context, question)
+        print("Chunking document...")
 
-print(answer)
+        self.chunks = chunk_text(self.document)
+
+        print(f"Created {len(self.chunks)} chunks")
+
+        print("Generating embeddings...")
+
+        self.embeddings = [
+            get_embedding(chunk)
+            for chunk in self.chunks
+        ]
+
+        print("Ready!\n")
+
+    def ask(self, question):
+
+        retrieved_chunks = embeddingretrieve(
+            question,
+            self.chunks,
+            self.embeddings
+        )
+
+        context = "\n\n".join(retrieved_chunks)
+
+        answer = ask_llm(context, question)
+
+        return answer
