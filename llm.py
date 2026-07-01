@@ -1,38 +1,44 @@
-from groq import Groq
 import os
+
+from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = Groq(
-        api_key=os.getenv("GROQ_API_KEY")
-)
 
-def ask_llm(context, question):
+class GroqLLM:
 
-    prompt = f"""
-        Use ONLY the context below.
+    def __init__(
+        self,
+        model="llama-3.1-8b-instant"
+    ):
 
-        Context:
-        {context}
+        self.client = Groq(
 
-        Question:
-        {question}
-
-        If answer isn't present say
-        "I don't know."
-        """
-
-    response = client.chat.completions.create(
-
-        model="llama-3.3-70b-versatile",
-
-        messages=[
-            {
-                 "role":"user",
-                "content":prompt
-            }
-                ]
+            api_key=os.getenv(
+                "GROQ_API_KEY"
+            )
         )
 
-    return response.choices[0].message.content
+        self.model = model
+
+    def generate(
+        self,
+        prompt
+    ):
+
+        response = self.client.chat.completions.create(
+
+            model=self.model,
+
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+
+            temperature=0
+        )
+
+        return response.choices[0].message.content

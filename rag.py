@@ -1,44 +1,78 @@
-from loader import load_document
-from chunker import chunk_text
 from embedding import get_embedding
-from vector_store import VectorStore
-
-from llm import ask_llm
 
 
-class BasicRAG:
+class RAG:
 
-    def __init__(self, document_path):
+    def __init__(
+        self,
+        vector_store,
+        llm
+    ):
 
-        self.document = load_document(document_path)
+        self.vector_store = vector_store
+        self.llm = llm
 
-        self.chunks = chunk_text(self.document)
-
-        embeddings = [
-            get_embedding(chunk)
-            for chunk in self.chunks
-        ]
-
-        embedding_dimension = len(embeddings[0])
-
-        self.vector_store = VectorStore(
-            embedding_dimension
-        )
-
-        self.vector_store.add(
-            self.chunks,
-            embeddings
-        )
-
-    def ask(self, question):
+    def ask(
+        self,
+        question,
+        top_k=3
+    ):
 
         question_embedding = get_embedding(question)
 
         retrieved_chunks = self.vector_store.search(
             question_embedding,
-            top_k=3
+            top_k
         )
 
-        context = "\n".join(retrieved_chunks)
+        print("\nRetrieved Chunks:")
+        print("=" * 50)
 
-        return ask_llm(context, question)
+        for chunk in retrieved_chunks:
+            print(f"Document : {chunk.document_name}")
+            print(f"Chunk ID : {chunk.chunk_id}")
+            print(f"Content  : {chunk.text}")
+            print("-" * 50)
+
+        context = ""
+
+        for chunk in retrieved_chunks:
+
+            context += f"""
+
+
+
+        Document:
+        {chunk.document_name}
+
+        Content:
+        {chunk.text}
+
+        ----------------------------------------
+
+        """
+
+        prompt = f"""
+        You are a helpful AI assistant.
+
+        Answer ONLY from the provided context.
+
+        If the answer is not present,
+        reply:
+
+        "I couldn't find the answer in the documents."
+
+        Context:
+
+        {context}
+
+        Question:
+
+        {question}
+
+        Answer:
+        """
+
+        answer = self.llm.generate(prompt)
+
+        return answer
